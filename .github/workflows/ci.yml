@@ -1,0 +1,40 @@
+name: CI - Verification
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    name: Type Check, Lint, and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check (tsc --noEmit)
+        run: npm run typecheck
+
+      - name: Lint (ESLint)
+        run: npm run lint
+
+      - name: Run Vitest schema tests
+        run: npm run test
+        env:
+          # Dummy values so env.ts validation passes during CI - no real
+          # secrets needed since these tests only exercise Zod schemas.
+          DATABASE_URL: 'postgresql://test:test@localhost:5432/test'
+          UPSTASH_REDIS_REST_URL: 'https://test.upstash.io'
+          UPSTASH_REDIS_REST_TOKEN: 'test-token'
+          ALLOWED_ORIGINS: 'http://localhost:5173'
+          ANTHROPIC_API_KEY: 'test-key'
