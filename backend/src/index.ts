@@ -90,8 +90,7 @@ app.post('/api/assumptions/:id/generate', async (req, res) => {
   const roadmap = await db.roadmap.findUnique({ where: { id: req.params.id } });
   if (!roadmap) return res.status(404).json({ error: "Not found" });
   
-  const ideas = roadmap.rawIdea;
-  const inferred = await extractAssumptions({ rawIdea: ideas, focusHint: "" });
+  const inferred = await extractAssumptions(roadmap.rawIdea, roadmap.sixW3hSummary);
   
   const created = await Promise.all(
     inferred.map(a => db.assumption.create({
@@ -121,10 +120,10 @@ app.post('/api/milestones/:id/generate', async (req, res) => {
   const roadmap = await db.roadmap.findUnique({ where: { id: roadmapId } });
   const assumptions = await db.assumption.findMany({ where: { roadmapId } });
   
-  const generated = await generateMilestones({
-    rawIdea: roadmap!.rawIdea,
-    assumptions: assumptions.map(a => a.statement)
-  });
+  const generated = await generateMilestones(
+    roadmap!.rawIdea,
+    roadmap!.sixW3hSummary
+  );
   
   const created = await Promise.all(
     generated.map((m, i) => db.milestone.create({
@@ -163,12 +162,12 @@ app.get('/api/first-step/:id', async (req, res) => {
 app.post('/api/first-step/:id/recommend', async (req, res) => {
   const roadmapId = req.params.id;
   const roadmap = await db.roadmap.findUnique({ where: { id: roadmapId } });
-  const assumptions = await db.assumption.findMany({ where: { roadmapId } });
+  const milestones = await db.milestone.findMany({ where: { roadmapId } });
   
-  const recommended = await recommendFirstStep({
-    rawIdea: roadmap!.rawIdea,
-    riskiestAssumption: assumptions[0]?.statement || "N/A"
-  });
+  const recommended = await recommendFirstStep(
+    roadmap!.rawIdea,
+    milestones
+  );
   
   const step = await db.firstStep.create({
     data: {

@@ -1,34 +1,16 @@
-/**
- * @file aiAgent.service.ts
- * @description Stage 1 AI Agent — 6W3H Intake Chatbot
- *
- * Structures a raw startup idea across the 9-field 6W3H framework:
- * Who, What, Where, When, Why, Which, How, How much, How many.
- *
- * KEY DESIGN DECISION: AI inferences NEVER overwrite user-provided values.
- * The spread order `{ ...aiInferred, ...userProvided }` ensures user input
- * always takes precedence. This is a core Responsible AI requirement.
- *
- * @see RESPONSIBLE_AI.md — "Never overwrite user input" guardrail
- */
-
-import { callModelJson } from "../ai";
-import type { SixWThreeH } from "../schemas/index";
-
-// Mirrors the teammate's `services/aiAgent.service.ts` (inferSixWThreeH).
-// Only calls the AI for fields the user actually left blank; anything the
-// user typed is trusted as-is and never overwritten by a guess.
+import { callGeminiJson } from './geminiClient.js';
+import type { SixWThreeH } from '../schemas/index.js';
 
 const SIX_W_3H_FIELDS = [
-  "who",
-  "what",
-  "where",
-  "when",
-  "why",
-  "which",
-  "how",
-  "howMuch",
-  "howMany",
+  'who',
+  'what',
+  'where',
+  'when',
+  'why',
+  'which',
+  'how',
+  'howMuch',
+  'howMany',
 ] as const;
 
 const SYSTEM_PROMPT = `You are an intake analyst for a startup idea planning tool.
@@ -39,6 +21,9 @@ respond with "Not specified - needs founder input" for that field.
 Respond ONLY with a JSON object containing exactly the requested keys as
 strings. No preamble, no markdown fences, no extra keys.`;
 
+// Only calls the AI for fields the user actually left blank. Anything the
+// user already typed is trusted as-is and never overwritten by a guess —
+// this keeps the human in the loop for whatever they bothered to specify.
 export const inferSixWThreeH = async (
   rawIdea: string,
   partial: SixWThreeH = {},
@@ -49,19 +34,14 @@ export const inferSixWThreeH = async (
     return partial;
   }
 
-  const inferred = await callModelJson<SixWThreeH>({
+  const inferred = await callGeminiJson<SixWThreeH>({
+    model: 'gemini-1.5-flash',
     system: SYSTEM_PROMPT,
-    prompt: `Raw idea: "${rawIdea}"\n\nFields needed: ${missingFields.join(", ")}`,
+    prompt: `Raw idea: "${rawIdea}"\n\nFields needed: ${missingFields.join(', ')}`,
+    maxTokens: 600,
   });
 
   // Spread order matters: AI fills gaps first, then user-provided values
   // overwrite them, guaranteeing user input always wins.
-  const cleaned: SixWThreeH = {};
-  for (const field of SIX_W_3H_FIELDS) {
-    const value = (inferred as Record<string, unknown>)[field];
-    if (typeof value === "string" && value.trim()) {
-      cleaned[field] = value.trim();
-    }
-  }
-  return { ...cleaned, ...partial };
+  return { ...inferred, ...partial };
 };

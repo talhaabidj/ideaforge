@@ -1,22 +1,5 @@
-/**
- * @file firstStepRecommender.service.ts
- * @description Stage 4 AI Agent — Paralysis Breaker
- *
- * Isolates the SINGLE smallest testable action the founder can take in the
- * next 24 hours to get real signal about their riskiest assumption.
- *
- * Constraints enforced via prompt engineering:
- * - Must be completable in 24-48 hours
- * - Requires zero budget
- * - Requires no team (solo-executable)
- * - Must produce observable, real-world signal (not just more research)
- *
- * @see ARCHITECTURE.md — Stage 4 data flow
- */
-
-import { callModelJson } from "../ai";
-
-// Mirrors the teammate's `services/firstStepRecommender.service.ts`.
+import { callGeminiJson } from './geminiClient.js';
+import type { Milestone } from '@prisma/client';
 
 export type FirstStepRecommendation = {
   action: string;
@@ -32,26 +15,20 @@ about the riskiest assumption underlying the idea.
 Respond ONLY with JSON shaped exactly like: {"action": string, "rationale":
 string, "estimatedTimeHours": number}. No preamble, no markdown fences.`;
 
-type MilestoneContext = { title: string; description: string | null; dayBucket: number };
+type MilestoneContext = Pick<Milestone, 'title' | 'description' | 'dayBucket'>;
 
 export const recommendFirstStep = async (
   rawIdea: string,
   milestones: MilestoneContext[],
 ): Promise<FirstStepRecommendation> => {
   const milestoneSummary = milestones
-    .map((m) => `[Day ${m.dayBucket}] ${m.title}${m.description ? ` - ${m.description}` : ""}`)
-    .join("\n");
+    .map((m) => `[Day ${m.dayBucket}] ${m.title}${m.description ? ` - ${m.description}` : ''}`)
+    .join('\n');
 
-  const result = await callModelJson<FirstStepRecommendation>({
+  return callGeminiJson<FirstStepRecommendation>({
+    model: 'gemini-1.5-flash',
     system: SYSTEM_PROMPT,
-    prompt: `Idea: "${rawIdea}"\n\nPlanned milestones:\n${milestoneSummary || "None generated yet."}`,
+    prompt: `Idea: "${rawIdea}"\n\nPlanned milestones:\n${milestoneSummary || 'None generated yet.'}`,
+    maxTokens: 400,
   });
-
-  return {
-    action: typeof result.action === "string" ? result.action : "",
-    rationale: typeof result.rationale === "string" ? result.rationale : "",
-    estimatedTimeHours: Number.isFinite(result.estimatedTimeHours)
-      ? result.estimatedTimeHours
-      : 2,
-  };
 };

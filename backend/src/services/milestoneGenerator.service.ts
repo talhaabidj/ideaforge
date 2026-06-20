@@ -1,21 +1,4 @@
-/**
- * @file milestoneGenerator.service.ts
- * @description Stage 3 AI Agent — Execution Coach
- *
- * Synthesizes a chronological 30/60/90-day milestone roadmap for a startup
- * idea. Produces 3-5 concrete, achievable milestones per day bucket.
- *
- * CRITICAL: The AI only PROPOSES milestones — every milestone stays in a
- * draft state (isAccepted: false) until the user explicitly accepts it via
- * the HITL (Human-in-the-Loop) accept endpoint. This is the centerpiece
- * of our Responsible AI design.
- *
- * @see RESPONSIBLE_AI.md — HITL Implementation section
- */
-
-import { callModelJson } from "../ai";
-
-// Mirrors the teammate's `services/milestoneGenerator.service.ts`.
+import { callGeminiJson } from './geminiClient.js';
 
 export type GeneratedMilestone = {
   title: string;
@@ -34,6 +17,8 @@ Respond ONLY with a JSON array of objects shaped exactly like:
 [{"title": string, "description": string, "dayBucket": 30 | 60 | 90,
 "orderIndex": number}, ...]. No preamble, no markdown fences.`;
 
+// The second "expensive reasoning agent" (planning doc, Section 4) - guarded
+// by the moderation middleware and the per-IP roadmap generation limiter.
 export const generateMilestones = async (
   rawIdea: string,
   sixW3hSummary: string | null,
@@ -44,19 +29,12 @@ export const generateMilestones = async (
     constraints ? `Real-world constraints: ${constraints}` : null,
   ]
     .filter(Boolean)
-    .join("\n\n");
+    .join('\n\n');
 
-  const milestones = await callModelJson<GeneratedMilestone[]>({
+  return callGeminiJson<GeneratedMilestone[]>({
+    model: 'gemini-1.5-pro',
     system: SYSTEM_PROMPT,
-    prompt: `Idea: "${rawIdea}"${context ? `\n\n${context}` : ""}`,
+    prompt: `Idea: "${rawIdea}"${context ? `\n\n${context}` : ''}`,
+    maxTokens: 1500,
   });
-
-  return milestones
-    .filter((m) => m && typeof m.title === "string")
-    .map((m) => ({
-      title: m.title,
-      description: typeof m.description === "string" ? m.description : "",
-      dayBucket: [30, 60, 90].includes(m.dayBucket) ? m.dayBucket : 30,
-      orderIndex: Number.isFinite(m.orderIndex) ? m.orderIndex : 0,
-    }));
 };

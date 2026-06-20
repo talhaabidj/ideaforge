@@ -1,24 +1,8 @@
-/**
- * @file assumptionExtractor.service.ts
- * @description Stage 2 AI Agent — Risk Analyst
- *
- * Surfaces the 3-5 riskiest unvalidated assumptions a founder is implicitly
- * making about their idea. Each assumption is tagged with a risk level
- * (low / medium / high) to help prioritize validation efforts.
- *
- * Focuses on: customer demand, willingness to pay, distribution channels,
- * regulatory constraints, and operational feasibility.
- *
- * @see ARCHITECTURE.md — Stage 2 data flow
- */
-
-import { callModelJson } from "../ai";
-
-// Mirrors the teammate's `services/assumptionExtractor.service.ts`.
+import { callGeminiJson } from './geminiClient.js';
 
 export type ExtractedAssumption = {
   statement: string;
-  riskLevel: "low" | "medium" | "high";
+  riskLevel: 'low' | 'medium' | 'high';
 };
 
 const SYSTEM_PROMPT = `You are a risk analyst for early-stage startup ideas. Given
@@ -30,28 +14,21 @@ Respond ONLY with a JSON array of objects shaped exactly like:
 [{"statement": string, "riskLevel": "low" | "medium" | "high"}, ...].
 No preamble, no markdown fences.`;
 
+// This is one of the two "expensive reasoning agents" the planning doc refers
+// to (Section 4) — moderation runs before this is ever called, and the
+// roadmap-generation rate limiter caps how often it can be hit per IP.
 export const extractAssumptions = async (
   rawIdea: string,
   sixW3hSummary: string | null,
-  focusHint?: string,
 ): Promise<ExtractedAssumption[]> => {
-  const context = [
-    sixW3hSummary ? `\n\n6W3H context: ${sixW3hSummary}` : "",
-    focusHint ? `\n\nAnalyst focus: ${focusHint}` : "",
-  ].join("");
+  const context = sixW3hSummary ? `\n\n6W3H context: ${sixW3hSummary}` : '';
 
-  const assumptions = await callModelJson<ExtractedAssumption[]>({
+  const assumptions = await callGeminiJson<ExtractedAssumption[]>({
+    model: 'gemini-1.5-pro',
     system: SYSTEM_PROMPT,
     prompt: `Idea: "${rawIdea}"${context}`,
+    maxTokens: 800,
   });
 
-  return assumptions
-    .filter((a) => a && typeof a.statement === "string")
-    .map((a) => ({
-      statement: a.statement,
-      riskLevel: ["low", "medium", "high"].includes(a.riskLevel)
-        ? a.riskLevel
-        : "medium",
-    }))
-    .slice(0, 5);
+  return assumptions.slice(0, 5);
 };
