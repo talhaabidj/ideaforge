@@ -1,0 +1,457 @@
+/* ============================================================
+   IdeaForge — Design System & Global Styles
+   
+   Color palette:
+   - Canvas:  #fcfcfd (light cool off-white)
+   - Emerald: #1f6f4a (deep forest, primary accent)
+   - Ember:   #f97316 (warm amber/orange, secondary accent)
+   - Molten:  #ef4444–#f97316 gradient (warm coral for manifesto emphasis)
+   
+   Typography:
+   - Space Grotesk: display/headlines
+   - Inter:         body/UI
+   - JetBrains Mono: code/technical labels
+   
+   Iconography: Phosphor Icons (Regular weight)
+   ============================================================ */
+
+@import "tailwindcss" source("../");
+
+/* Explicitly ignore skills, research, upload dirs to prevent phantom class generation */
+@source not "../../skills";
+@source not "../../research";
+@source not "../../upload";
+
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================================
+   Theme — Design Tokens (CSS custom properties mapped to
+   Tailwind v4's @theme inline directive)
+   ============================================================ */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-display);
+  --font-mono: var(--font-mono);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-canvas: var(--canvas);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-hairline: var(--hairline);
+  --color-ink: var(--ink);
+  --color-body: var(--body);
+  --color-mute: var(--mute);
+  --color-emerald: var(--emerald);
+  --color-emerald-bright: var(--emerald-bright);
+  --color-ember: var(--ember);
+  --color-ember-bright: var(--ember-bright);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* ============================================================
+   Light Mode — root custom properties
+   ============================================================ */
+:root {
+  --radius: 0.625rem;
+  --background: #fcfcfd;
+  --foreground: #0a0a0b;
+  --card: #ffffff;
+  --card-foreground: #0a0a0b;
+  --popover: #ffffff;
+  --popover-foreground: #0a0a0b;
+  --primary: #1f6f4a;
+  --primary-foreground: #ffffff;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #0a0a0b;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --accent: #f4f4f5;
+  --accent-foreground: #0a0a0b;
+  --destructive: #dc2626;
+  --border: #e5e5e7;
+  --input: #e5e5e7;
+  --ring: #1f6f4a;
+  --canvas: #fcfcfd;
+  --surface-1: #f4f4f5;
+  --surface-2: #e9e9eb;
+  --surface-3: #dcdcdf;
+  --hairline: #e5e5e7;
+  --ink: #0a0a0b;
+  --body: #3f3f46;
+  --mute: #71717a;
+  --emerald: #1f6f4a;
+  --emerald-bright: #3ecf8e;
+
+  /* Ember accent — warm amber/orange to complement the cool emerald */
+  --ember: #f97316;
+  --ember-bright: #fb923c;
+}
+
+/* ============================================================
+   Dark Mode — inverted palette
+   ============================================================ */
+.dark {
+  --background: #0a0b0d;
+  --foreground: #ededed;
+  --card: #111214;
+  --card-foreground: #ededed;
+  --popover: #111214;
+  --popover-foreground: #ededed;
+  --primary: #3ecf8e;
+  --primary-foreground: #0a0b0d;
+  --secondary: #18191c;
+  --secondary-foreground: #ededed;
+  --muted: #18191c;
+  --muted-foreground: #8b8b94;
+  --accent: #18191c;
+  --accent-foreground: #ededed;
+  --destructive: #f87171;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.12);
+  --ring: #3ecf8e;
+  --canvas: #0a0b0d;
+  --surface-1: #111214;
+  --surface-2: #18191c;
+  --surface-3: #1f2024;
+  --hairline: rgba(255, 255, 255, 0.08);
+  --ink: #ededed;
+  --body: #b4b4bd;
+  --mute: #8b8b94;
+  --emerald: #3ecf8e;
+  --emerald-bright: #3ecf8e;
+
+  /* Ember in dark mode — slightly brighter for contrast */
+  --ember: #fb923c;
+  --ember-bright: #fdba74;
+}
+
+/* ============================================================
+   Base Layer — global resets, typography, scrollbar, selection
+   ============================================================ */
+@layer base {
+  * { @apply border-border outline-ring/50; }
+  html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: ss03, cv11, tnum, liga, calt;
+    text-rendering: optimizeLegibility;
+  }
+  .font-display { font-family: var(--font-display); letter-spacing: -0.03em; font-weight: 600; }
+
+  /* Custom scrollbar — thin, subtle, canvas-matched */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--hairline); border-radius: 999px; border: 3px solid var(--canvas); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--mute); }
+
+  /* Selection highlight — emerald tint */
+  ::selection { background: rgba(31, 111, 74, 0.16); color: var(--foreground); }
+
+  /* Focus-visible — double-ring with emerald accent, high-contrast for a11y */
+  :focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--canvas), 0 0 0 4px rgba(31, 111, 74, 0.5);
+  }
+}
+
+/* ============================================================
+   Utility Layer — surfaces, typography, shadows, effects
+   ============================================================ */
+@layer utilities {
+
+  /* ── Surface levels ─────────────────────────────────────── */
+  .canvas { background: var(--canvas); }
+  .surface-1 { background: var(--surface-1); }
+  .surface-2 { background: var(--surface-2); }
+  .surface-3 { background: var(--surface-3); }
+  .hairline { border: 1px solid var(--hairline); }
+  .hairline-b { border-bottom: 1px solid var(--hairline); }
+  .hairline-t { border-top: 1px solid var(--hairline); }
+
+  /* ── Lift cards — surface + border combination ─────────── */
+  .lift { background: var(--card); border: 1px solid var(--hairline); }
+  .lift-2 { background: var(--surface-1); border: 1px solid var(--hairline); }
+
+  /* ── Typography utilities ──────────────────────────────── */
+  .eyebrow { font-size: 13px; font-weight: 500; letter-spacing: 0.01em; color: var(--mute); }
+  .ui-mono { font-family: var(--font-mono); font-size: 12px; letter-spacing: -0.01em; }
+
+  /* mono-eyebrow — uppercase monospace label used for section markers,
+     ticker items, and spec-sheet annotations. JetBrains Mono, emerald tint. */
+  .mono-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--emerald);
+  }
+
+  /* ── Color utilities — Emerald ─────────────────────────── */
+  .text-emerald { color: var(--emerald); }
+  .text-emerald-bright { color: var(--emerald-bright); }
+
+  /* ── Color utilities — Ember (warm amber/orange accent) ── */
+  /* Complements the cool emerald; used for decorative sparks,
+     status dots, ticker glyphs, and schematic callouts. */
+  .text-ember { color: var(--ember); }
+  .bg-ember { background-color: var(--ember); }
+  .ring-ember { box-shadow: 0 0 0 2px var(--ember); }
+
+  /* ── Color utility — Molten (warm gradient text for manifesto emphasis) ── */
+  .text-molten {
+    background: linear-gradient(135deg, #ef4444 0%, #f97316 50%, #f59e0b 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  /* ── Elevation — subtle, layered, never heavy ──────────── */
+  .shadow-sm { box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 1px 1px rgba(0,0,0,0.02); }
+  .shadow-md { box-shadow: 0 2px 4px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03); }
+  .shadow-lg { box-shadow: 0 8px 24px -8px rgba(0,0,0,0.1), 0 2px 6px rgba(0,0,0,0.04); }
+
+  /* shadow-stack — layered stacked shadows for premium card depth */
+  .shadow-stack {
+    box-shadow:
+      0 1px 2px rgba(0,0,0,0.04),
+      0 4px 8px -2px rgba(0,0,0,0.06),
+      0 12px 24px -4px rgba(0,0,0,0.08);
+  }
+
+  /* shadow-stack-lg — larger version for hero/modal elements */
+  .shadow-stack-lg {
+    box-shadow:
+      0 1px 3px rgba(0,0,0,0.03),
+      0 8px 16px -4px rgba(0,0,0,0.06),
+      0 24px 48px -8px rgba(0,0,0,0.10),
+      0 48px 80px -16px rgba(0,0,0,0.08);
+  }
+
+  /* Emerald-tinted shadow for primary cards */
+  .shadow-emerald { box-shadow: 0 4px 16px -6px rgba(31, 111, 74, 0.15), 0 1px 3px rgba(0,0,0,0.04); }
+
+  /* ── Edge highlight — subtle top/left white border for depth ── */
+  .edge-highlight {
+    border-top: 1px solid rgba(255, 255, 255, 0.10);
+    border-left: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  /* ── Grain texture overlay — adds tactile noise ────────── */
+  .grain {
+    position: relative;
+  }
+  .grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.3;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 128px 128px;
+    border-radius: inherit;
+    z-index: 1;
+  }
+
+  /* ── Mask-fade-edges — gradient mask for ticker/scroll containers ── */
+  .mask-fade-edges {
+    mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+  }
+
+  /* ── Glassmorphism utilities ───────────────────────────── */
+  .glass {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+  .glass-subtle {
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  /* ── Smooth transition defaults ────────────────────────── */
+  .transition-smooth { transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1); }
+
+  /* ── Gradient text — emerald accent for emphasis words ── */
+  .text-gradient-emerald {
+    background: linear-gradient(120deg, var(--emerald) 0%, var(--emerald-bright) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+}
+
+/* ============================================================
+   Keyframe Animations
+   ============================================================ */
+
+/* Fade-up — the workhorse entrance animation */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Simple fade-in */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Scale-in — for cards and modals */
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Shimmer-pulse — for subtle breathing effects */
+@keyframes shimmer-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Spark-pulse — for the live indicator dot */
+@keyframes spark-pulse {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+/* Ticker — horizontal marquee for the scrolling ticker strip */
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Pulse-dot — pulsing scale+opacity for status dots in schematics */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.4); }
+}
+
+/* Shimmer — loading skeleton sweep effect */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Slide-up — page transition entrance */
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Slide-down — page transition exit */
+@keyframes slide-down {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-10px); }
+}
+
+/* ============================================================
+   Animation Classes
+   ============================================================ */
+
+/* Core entrance animations */
+.animate-fade-up { animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-fade-in { animation: fade-in 0.5s ease both; }
+.animate-scale-in { animation: scale-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-spark { animation: spark-pulse 2.5s ease-in-out infinite; }
+
+/* Ticker — infinite horizontal scroll for marquee strips */
+.animate-ticker { animation: ticker 30s linear infinite; }
+
+/* Pulse-dot — pulsing dot for status indicators (schematics, headers) */
+.animate-pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+
+/* Shimmer — loading skeleton sweep */
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--surface-1) 25%,
+    var(--surface-2) 50%,
+    var(--surface-1) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+/* Page transitions */
+.animate-slide-up { animation: slide-up 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-slide-down { animation: slide-down 0.3s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* ============================================================
+   Reduced Motion — respect user preferences
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ============================================================
+   Print Styles — clean output for stakeholder reports
+   ============================================================ */
+@media print {
+  /* Hide chrome, backgrounds, decorations */
+  header, footer, nav,
+  .forge-background,
+  .animate-ticker,
+  .mask-fade-edges,
+  button[aria-label] {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt;
+  }
+
+  /* Ensure content is visible and readable */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    background: transparent !important;
+  }
+
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
+
+  /* Prevent page breaks inside cards */
+  .lift, .lift-2 {
+    break-inside: avoid;
+    border: 1px solid #ddd !important;
+  }
+}
