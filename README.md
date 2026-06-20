@@ -36,7 +36,7 @@ IdeaForge is structured as a commercial-grade full-stack application with comple
 - **Frontend (`/frontend`):** Next.js App Router (React 19) with Tailwind CSS 4, shadcn/ui, Framer Motion, and Zustand
 - **Backend (`/backend`):** Dedicated Express.js server exposing REST API endpoints
 - **Database:** SQLite with Prisma ORM (stored in `/backend/prisma`)
-- **AI Layer:** 4 specialized agents utilizing the `z-ai-web-dev-sdk`
+- **AI Layer:** 4 specialized agents utilizing `@google/generative-ai` (Gemini API)
 
 > 📐 See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full system diagram, data flow, and design decisions.
 
@@ -96,7 +96,7 @@ ideaforge/
 │   │   ├── config/                    # Database and environment config
 │   │   ├── schemas/                   # Zod validation schemas
 │   │   ├── services/                  # The 4 AI Agents implementation
-│   │   └── ai.ts                      # z-ai-web-dev-sdk wrapper
+│   │   └── geminiClient.ts            # Gemini API integration
 │   ├── prisma/                        # SQLite Database & ORM Schema
 │   │   ├── schema.prisma              # Data models (Roadmap, Assumption, etc)
 │   │   └── dev.db                     # Local SQLite database

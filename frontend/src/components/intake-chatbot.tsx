@@ -59,7 +59,7 @@ const TypingIndicator = () => (
     className="flex gap-3"
   >
     {/* Bot avatar */}
-    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg surface-3 text-ember edge-highlight">
+    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg surface-3 text-emerald edge-highlight">
       <SpikeMark className="h-3.5 w-3.5" />
     </span>
     {/* Bouncing dots container */}
@@ -67,7 +67,7 @@ const TypingIndicator = () => (
       {[0, 1, 2].map((i) => (
         <motion.span
           key={i}
-          className="h-1.5 w-1.5 rounded-full bg-ember"
+          className="h-1.5 w-1.5 rounded-full bg-emerald"
           animate={{ y: [0, -6, 0] }}
           transition={{
             duration: 0.6,
@@ -308,13 +308,9 @@ export const IntakeChatbot = () => {
     >
       {/* ── Section header — spec-sheet taxonomy ─────────── */}
       <div className="mb-10">
-        <div className="mb-4 flex items-center gap-3">
-          <span className="mono-eyebrow text-ember">04 / intake</span>
-          <span className="h-px w-12 bg-border" />
-          <span className="mono-eyebrow text-muted-foreground/50">stage 01 · 6W3H agent</span>
-        </div>
-        <h2 className="font-serif text-[clamp(2rem,5vw,3.5rem)] leading-[1.05] text-foreground">
-          Drop the raw idea. <span className="text-molten italic">We'll structure it.</span>
+        <span className="eyebrow">01 · intake · 6W3H agent</span>
+        <h2 className="mt-2 font-display text-[clamp(1.75rem,4vw,2.75rem)] leading-tight text-foreground">
+          Drop the raw idea. <span className="text-gradient-emerald">We'll structure it.</span>
         </h2>
         <p className="mt-4 max-w-xl text-muted-foreground">
           A 6W3H chatbot turns a vague thought into a structured problem statement.
@@ -322,19 +318,19 @@ export const IntakeChatbot = () => {
         </p>
       </div>
 
-      {/* ── The forge interface — surface-1 card, hairline border ── */}
-      <div className="relative overflow-hidden rounded-xl surface-1 shadow-stack-lg grain">
+      {/* ── The forge interface ── */}
+      <div className="relative overflow-hidden rounded-lg lift mt-8">
         {/* ── Window chrome — mono ID, not mac dots ────────── */}
         <div className="flex items-center justify-between border-b border-border surface-2 px-5 py-2.5">
           <div className="flex items-center gap-2.5">
-            <AnvilGlyph className="h-4 w-4 text-ember" />
-            <span className="mono-eyebrow text-muted-foreground">intake.console</span>
-            <span className="mono-eyebrow text-muted-foreground/40">/ agent-01</span>
+            <AnvilGlyph className="h-4 w-4 text-emerald" />
+            <span className="eyebrow text-muted-foreground">intake.console</span>
+            <span className="eyebrow text-muted-foreground/40">/ agent-01</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="mono-eyebrow text-muted-foreground/60">session</span>
-            <span className="h-1.5 w-1.5 rounded-full bg-ember animate-pulse-dot" />
-            <span className="mono-eyebrow text-ember">live</span>
+            <span className="eyebrow text-muted-foreground/60">session</span>
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald animate-pulse-dot" />
+            <span className="eyebrow text-emerald">live</span>
           </div>
         </div>
 
@@ -345,9 +341,9 @@ export const IntakeChatbot = () => {
               key={i}
               className={`h-1 flex-1 rounded-full transition-colors duration-300 ${
                 i < fieldIndex || phase === "submitting" || phase === "done"
-                  ? "bg-ember"
+                  ? "bg-emerald"
                   : i === fieldIndex && phase === "fields"
-                    ? "bg-ember/50"
+                    ? "bg-emerald/50"
                     : "surface-3"
               }`}
               aria-hidden="true"
@@ -355,12 +351,12 @@ export const IntakeChatbot = () => {
           ))}
           {/* Step counter — visible during fields phase */}
           {phase === "fields" && (
-            <span className="ml-2 shrink-0 mono-eyebrow text-muted-foreground/60 text-[10px]">
+            <span className="ml-2 shrink-0 eyebrow text-muted-foreground/60 text-[10px]">
               {fieldIndex + 1}/9
             </span>
           )}
           {phase === "done" && (
-            <span className="ml-2 shrink-0 mono-eyebrow text-emerald text-[10px]">
+            <span className="ml-2 shrink-0 eyebrow text-emerald text-[10px]">
               ✓ done
             </span>
           )}
@@ -386,25 +382,25 @@ export const IntakeChatbot = () => {
                 {/* Avatar — spike-mark for agent, mono "you" for user */}
                 <span
                   className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-                    line.role === "bot" ? "surface-3 text-ember edge-highlight" : "surface-2 text-muted-foreground"
+                    line.role === "bot" ? "surface-3 text-emerald edge-highlight" : "surface-2 text-muted-foreground"
                   }`}
                   aria-hidden="true"
                 >
                   {line.role === "bot" ? (
                     <SpikeMark className="h-3.5 w-3.5" />
                   ) : (
-                    <span className="mono-eyebrow text-[9px]">you</span>
+                    <span className="eyebrow text-[9px]">you</span>
                   )}
                 </span>
                 <div
                   className={`max-w-[78%] rounded-lg px-3.5 py-2.5 text-sm leading-relaxed ${
                     line.role === "bot"
                       ? "rounded-tl-sm surface-2 text-foreground"
-                      : "rounded-tr-sm surface-3 text-foreground ring-1 ring-inset ring-ember/15"
+                      : "rounded-tr-sm surface-3 text-foreground ring-1 ring-inset ring-emerald/15"
                   }`}
                 >
                   {line.field && (
-                    <span className="mb-1 block mono-eyebrow text-ember/80">{line.field}</span>
+                    <span className="mb-1 block eyebrow text-emerald/80">{line.field}</span>
                   )}
                   {line.text}
                 </div>
@@ -439,7 +435,7 @@ export const IntakeChatbot = () => {
                 value={rawIdea}
                 onChange={(e) => setRawIdea(e.target.value)}
                 placeholder="e.g. A peer-to-peer skill-swapping app for university students who can't afford paid courses…"
-                className="min-h-[100px] resize-none border-border surface-1 text-sm leading-relaxed placeholder:text-muted-foreground/50 focus-visible:ring-ember/40"
+                className="min-h-[100px] resize-none border-border surface-1 text-sm leading-relaxed placeholder:text-muted-foreground/50 focus-visible:ring-emerald/40"
                 aria-label="Your raw idea"
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
@@ -451,15 +447,15 @@ export const IntakeChatbot = () => {
                 }}
               />
               <div className="flex items-center justify-between">
-                <span className="mono-eyebrow text-muted-foreground/60">
+                <span className="eyebrow text-muted-foreground/60">
                   {rawIdea.length}<span className="text-muted-foreground/40">/2000</span>
                 </span>
                 <div className="flex items-center gap-2">
-                  {error && <span className="text-xs text-coral">{error}</span>}
+                  {error && <span className="text-xs text-red-500">{error}</span>}
                   <Button
                     onClick={commitIdea}
                     disabled={rawIdea.trim().length < 10}
-                    className="bg-gradient-to-r from-ember-soft via-ember to-coral text-ink hover:opacity-90"
+                    className="bg-foreground text-background hover:bg-foreground/90"
                   >
                     Continue
                     <ArrowRight className="h-4 w-4" />
@@ -474,14 +470,14 @@ export const IntakeChatbot = () => {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-md surface-3 text-ember">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-md surface-3 text-emerald">
                     <SparkGlyph className="h-3 w-3" />
                   </span>
-                  <span className="mono-eyebrow text-muted-foreground">
+                  <span className="eyebrow text-muted-foreground">
                     q{fieldIndex + 1}<span className="text-muted-foreground/40">/9</span> · {currentField.label}
                   </span>
                 </div>
-                <span className="mono-eyebrow text-muted-foreground/60">
+                <span className="eyebrow text-muted-foreground/60">
                   {answeredCount} answered
                 </span>
               </div>
@@ -489,7 +485,7 @@ export const IntakeChatbot = () => {
                 value={fieldAnswer}
                 onChange={(e) => setFieldAnswer(e.target.value)}
                 placeholder={currentField.placeholder}
-                className="min-h-[72px] resize-none border-border surface-1 text-sm leading-relaxed placeholder:text-muted-foreground/50 focus-visible:ring-ember/40"
+                className="min-h-[72px] resize-none border-border surface-1 text-sm leading-relaxed placeholder:text-muted-foreground/50 focus-visible:ring-emerald/40"
                 aria-label={`Answer for: ${currentField.label}`}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
@@ -503,7 +499,7 @@ export const IntakeChatbot = () => {
               />
               <div className="flex items-center justify-between gap-2">
                 <p className="hidden text-xs text-muted-foreground/70 sm:block">
-                  <span className="text-ember/80">·</span> {currentField.hint}
+                  <span className="text-emerald/80">·</span> {currentField.hint}
                 </p>
                 <div className="flex items-center gap-2">
                   <Button
@@ -519,7 +515,7 @@ export const IntakeChatbot = () => {
                   <Button
                     onClick={() => answerField(false)}
                     disabled={fieldAnswer.trim().length === 0}
-                    className="bg-gradient-to-r from-ember-soft via-ember to-coral text-ink hover:opacity-90"
+                    className="bg-foreground text-background hover:bg-foreground/90"
                   >
                     {fieldIndex < SIX_W_THREE_H_FIELDS.length - 1 ? "Next" : "Forge it"}
                     <ArrowRight className="h-4 w-4" />
@@ -532,7 +528,7 @@ export const IntakeChatbot = () => {
           {/* Phase: Submitting to the API */}
           {phase === "submitting" && (
             <div className="flex items-center justify-center gap-3 py-6 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin text-ember" />
+              <Loader2 className="h-4 w-4 animate-spin text-emerald" />
               Inferring gaps & structuring your idea…
             </div>
           )}
@@ -552,7 +548,7 @@ export const IntakeChatbot = () => {
               </div>
               <Button
                 onClick={() => setStage("assumptions")}
-                className="bg-gradient-to-r from-ember-soft via-ember to-coral text-ink hover:opacity-90"
+                className="bg-foreground text-background hover:bg-foreground/90"
               >
                 Pressure-test assumptions
                 <ArrowRight className="h-4 w-4" />

@@ -28,23 +28,26 @@ async function getUser() {
 }
 
 // Routes
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-app.get('/api/session', async (req, res) => {
+app.get('/api/session', async (_req, res) => {
   const user = await getUser();
   res.json({ user });
 });
 
-app.get('/api/roadmaps', async (req, res) => {
+app.get('/api/roadmaps', async (_req, res) => {
   const user = await getUser();
   const roadmaps = await db.roadmap.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: "desc" },
     include: { _count: { select: { assumptions: true, milestones: true } } }
   });
-  if (roadmaps.length === 0) return res.status(404).json({ error: "No roadmaps" });
+  if (roadmaps.length === 0) {
+    res.status(404).json({ error: "No roadmaps" });
+    return;
+  }
   res.json({ roadmaps });
 });
 
@@ -74,7 +77,10 @@ app.post('/api/intake', async (req, res) => {
 
 app.get('/api/intake/:id', async (req, res) => {
   const roadmap = await db.roadmap.findUnique({ where: { id: req.params.id } });
-  if (!roadmap) return res.status(404).json({ error: "Not found" });
+  if (!roadmap) {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
   res.json({ roadmap });
 });
 
@@ -88,7 +94,10 @@ app.get('/api/assumptions/:id', async (req, res) => {
 
 app.post('/api/assumptions/:id/generate', async (req, res) => {
   const roadmap = await db.roadmap.findUnique({ where: { id: req.params.id } });
-  if (!roadmap) return res.status(404).json({ error: "Not found" });
+  if (!roadmap) {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
   
   const inferred = await extractAssumptions(roadmap.rawIdea, roadmap.sixW3hSummary);
   
@@ -118,7 +127,6 @@ app.get('/api/milestones/:id', async (req, res) => {
 app.post('/api/milestones/:id/generate', async (req, res) => {
   const roadmapId = req.params.id;
   const roadmap = await db.roadmap.findUnique({ where: { id: roadmapId } });
-  const assumptions = await db.assumption.findMany({ where: { roadmapId } });
   
   const generated = await generateMilestones(
     roadmap!.rawIdea,
