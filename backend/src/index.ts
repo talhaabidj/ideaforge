@@ -190,6 +190,15 @@ app.post('/api/first-step/:id/recommend', async (req, res) => {
   res.json({ firstStep: step });
 });
 
+app.delete('/api/roadmaps/:id', async (req, res) => {
+  try {
+    await db.roadmap.delete({ where: { id: req.params.id } });
+    res.json({ deleted: true, id: req.params.id });
+  } catch (_error) {
+    res.status(404).json({ error: "Roadmap not found" });
+  }
+});
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Backend running on http://localhost:${PORT}`);

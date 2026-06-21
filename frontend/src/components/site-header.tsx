@@ -14,6 +14,7 @@ export const SiteHeader = () => {
   const stage = useIdeaforge((s) => s.stage);
   const setStage = useIdeaforge((s) => s.setStage);
   const roadmap = useIdeaforge((s) => s.roadmap);
+  const reset = useIdeaforge((s) => s.reset);
   const activeIndex = STAGES.findIndex((s) => s.id === stage);
   const reachedIndex = activeIndex === -1 ? STAGES.length : activeIndex;
   const showLanding = !roadmap;
@@ -74,6 +75,15 @@ export const SiteHeader = () => {
 
         {/* Right — Library + How it works */}
         <div className="flex items-center gap-2">
+          {roadmap && (
+            <button
+              onClick={reset}
+              className="rounded-md px-3.5 py-1.5 text-[13px] font-medium text-white transition-smooth hover:opacity-90 hover:shadow-sm"
+              style={{ background: "var(--emerald)" }}
+            >
+              + New Idea
+            </button>
+          )}
           <button
             onClick={() => setStage("library")}
             className={`rounded-md hairline surface-1 px-3.5 py-1.5 text-[13px] font-medium transition-smooth hover:surface-2 hover:shadow-sm ${
