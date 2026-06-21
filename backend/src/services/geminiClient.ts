@@ -60,8 +60,10 @@ export const callGeminiJson = async <T>(options: CallJsonOptions): Promise<T> =>
         continue;
       }
 
-      logger.error({ error, model, attempt }, 'Failed to call Gemini or parse JSON');
-      throw Error('AI returned malformed JSON or request failed');
+      const errMsg = err.message || String(error);
+      console.error(`Gemini error [${model}] attempt ${attempt}:`, errMsg);
+      logger.error({ error: errMsg, model, attempt }, 'Failed to call Gemini or parse JSON');
+      throw Error(`AI call failed: ${errMsg}`);
     }
   }
 

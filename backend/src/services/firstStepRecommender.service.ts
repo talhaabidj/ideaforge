@@ -29,6 +29,6 @@ export const recommendFirstStep = async (
     model: 'gemini-2.5-flash',
     system: SYSTEM_PROMPT,
     prompt: `Idea: "${rawIdea}"\n\nPlanned milestones:\n${milestoneSummary || 'None generated yet.'}`,
-    maxTokens: 400,
+    maxTokens: 4096,
   });
 };

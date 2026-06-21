@@ -35,6 +35,6 @@ export const generateMilestones = async (
     model: 'gemini-2.5-flash',
     system: SYSTEM_PROMPT,
     prompt: `Idea: "${rawIdea}"${context ? `\n\n${context}` : ''}`,
-    maxTokens: 1500,
+    maxTokens: 8192,
   });
 };
