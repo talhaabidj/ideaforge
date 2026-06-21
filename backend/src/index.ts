@@ -93,27 +93,32 @@ app.get('/api/assumptions/:id', async (req, res) => {
 });
 
 app.post('/api/assumptions/:id/generate', async (req, res) => {
-  const roadmap = await db.roadmap.findUnique({ where: { id: req.params.id } });
-  if (!roadmap) {
-    res.status(404).json({ error: "Not found" });
-    return;
+  try {
+    const roadmap = await db.roadmap.findUnique({ where: { id: req.params.id } });
+    if (!roadmap) {
+      res.status(404).json({ error: "Not found" });
+      return;
+    }
+    
+    const inferred = await extractAssumptions(roadmap.rawIdea, roadmap.sixW3hSummary);
+    
+    const created = await Promise.all(
+      inferred.map(a => db.assumption.create({
+        data: {
+          roadmapId: roadmap.id,
+          statement: a.statement,
+          riskLevel: a.riskLevel,
+          isValidated: "pending"
+        }
+      }))
+    );
+    
+    await db.roadmap.update({ where: { id: roadmap.id }, data: { status: "assumptions" } });
+    res.json({ assumptions: created });
+  } catch (error) {
+    console.error("Assumptions Error:", error);
+    res.status(500).json({ error: "Failed to generate assumptions" });
   }
-  
-  const inferred = await extractAssumptions(roadmap.rawIdea, roadmap.sixW3hSummary);
-  
-  const created = await Promise.all(
-    inferred.map(a => db.assumption.create({
-      data: {
-        roadmapId: roadmap.id,
-        statement: a.statement,
-        riskLevel: a.riskLevel,
-        isValidated: "pending"
-      }
-    }))
-  );
-  
-  await db.roadmap.update({ where: { id: roadmap.id }, data: { status: "assumptions" } });
-  res.json({ assumptions: created });
 });
 
 app.get('/api/milestones/:id', async (req, res) => {
@@ -125,29 +130,38 @@ app.get('/api/milestones/:id', async (req, res) => {
 });
 
 app.post('/api/milestones/:id/generate', async (req, res) => {
-  const roadmapId = req.params.id;
-  const roadmap = await db.roadmap.findUnique({ where: { id: roadmapId } });
-  
-  const generated = await generateMilestones(
-    roadmap!.rawIdea,
-    roadmap!.sixW3hSummary
-  );
-  
-  const created = await Promise.all(
-    generated.map((m, i) => db.milestone.create({
-      data: {
-        roadmapId,
-        title: m.title,
-        description: m.description,
-        dayBucket: m.dayBucket,
-        orderIndex: i,
-        isAccepted: false
-      }
-    }))
-  );
-  
-  await db.roadmap.update({ where: { id: roadmapId }, data: { status: "milestones" } });
-  res.json({ milestones: created });
+  try {
+    const roadmapId = req.params.id;
+    const roadmap = await db.roadmap.findUnique({ where: { id: roadmapId } });
+    if (!roadmap) {
+      res.status(404).json({ error: "Not found" });
+      return;
+    }
+    
+    const generated = await generateMilestones(
+      roadmap.rawIdea,
+      roadmap.sixW3hSummary
+    );
+    
+    const created = await Promise.all(
+      generated.map((m, i) => db.milestone.create({
+        data: {
+          roadmapId,
+          title: m.title,
+          description: m.description,
+          dayBucket: m.dayBucket,
+          orderIndex: i,
+          isAccepted: false
+        }
+      }))
+    );
+    
+    await db.roadmap.update({ where: { id: roadmapId }, data: { status: "milestones" } });
+    res.json({ milestones: created });
+  } catch (error) {
+    console.error("Milestones Error:", error);
+    res.status(500).json({ error: "Failed to generate milestones" });
+  }
 });
 
 app.patch('/api/milestones/:id/accept', async (req, res) => {
@@ -168,26 +182,35 @@ app.get('/api/first-step/:id', async (req, res) => {
 });
 
 app.post('/api/first-step/:id/recommend', async (req, res) => {
-  const roadmapId = req.params.id;
-  const roadmap = await db.roadmap.findUnique({ where: { id: roadmapId } });
-  const milestones = await db.milestone.findMany({ where: { roadmapId } });
-  
-  const recommended = await recommendFirstStep(
-    roadmap!.rawIdea,
-    milestones
-  );
-  
-  const step = await db.firstStep.create({
-    data: {
-      roadmapId,
-      action: recommended.action,
-      rationale: recommended.rationale,
-      estimatedTimeHours: recommended.estimatedTimeHours
+  try {
+    const roadmapId = req.params.id;
+    const roadmap = await db.roadmap.findUnique({ where: { id: roadmapId } });
+    if (!roadmap) {
+      res.status(404).json({ error: "Not found" });
+      return;
     }
-  });
-  
-  await db.roadmap.update({ where: { id: roadmapId }, data: { status: "complete" } });
-  res.json({ firstStep: step });
+    const milestones = await db.milestone.findMany({ where: { roadmapId } });
+    
+    const recommended = await recommendFirstStep(
+      roadmap.rawIdea,
+      milestones
+    );
+    
+    const step = await db.firstStep.create({
+      data: {
+        roadmapId,
+        action: recommended.action,
+        rationale: recommended.rationale,
+        estimatedTimeHours: recommended.estimatedTimeHours
+      }
+    });
+    
+    await db.roadmap.update({ where: { id: roadmapId }, data: { status: "complete" } });
+    res.json({ firstStep: step });
+  } catch (error) {
+    console.error("First Step Error:", error);
+    res.status(500).json({ error: "Failed to recommend first step" });
+  }
 });
 
 app.delete('/api/roadmaps/:id', async (req, res) => {

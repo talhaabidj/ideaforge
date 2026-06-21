@@ -18,39 +18,52 @@ const stripMarkdownFences = (text: string): string =>
     .replace(/^```\s*/i, '')
     .replace(/```\s*$/i, '');
 
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 // Sends a single-turn message to Gemini and parses the reply as JSON.
-// Throws loudly on malformed output instead of silently persisting garbage —
-// callers (services) let this bubble up to the global errorHandler.
+// Retries up to 3 times on rate-limit (429) errors with exponential backoff.
 export const callGeminiJson = async <T>(options: CallJsonOptions): Promise<T> => {
-  const { model, system, prompt, maxTokens = 1024 } = options;
+  const { model, system, prompt, maxTokens = 2048 } = options;
+  const maxRetries = 3;
 
-  try {
-    const generativeModel = geminiClient.getGenerativeModel({
-      model,
-      systemInstruction: system,
-    });
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const generativeModel = geminiClient.getGenerativeModel({
+        model,
+        systemInstruction: system,
+      });
 
-    const result = await generativeModel.generateContent({
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: {
-        maxOutputTokens: maxTokens,
-        responseMimeType: "application/json",
-      },
-    });
+      const result = await generativeModel.generateContent({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: {
+          maxOutputTokens: maxTokens,
+          responseMimeType: "application/json",
+        },
+      });
 
-    const text = result.response.text();
+      const text = result.response.text();
 
-    if (!text) {
-      throw Error('AI response contained no text content');
+      if (!text) {
+        throw Error('AI response contained no text content');
+      }
+
+      const cleaned = stripMarkdownFences(text);
+      return JSON.parse(cleaned) as T;
+    } catch (error: unknown) {
+      const err = error as { status?: number; message?: string };
+
+      // Retry on rate limit (429) with exponential backoff
+      if (err.status === 429 && attempt < maxRetries) {
+        const delay = Math.pow(2, attempt + 1) * 1000; // 2s, 4s, 8s
+        logger.warn({ model, attempt, delay }, `Rate limited, retrying in ${delay}ms...`);
+        await sleep(delay);
+        continue;
+      }
+
+      logger.error({ error, model, attempt }, 'Failed to call Gemini or parse JSON');
+      throw Error('AI returned malformed JSON or request failed');
     }
-
-    const cleaned = stripMarkdownFences(text);
-    console.log("GEMINI RAW:", text);
-    console.log("GEMINI CLEANED:", cleaned);
-
-    return JSON.parse(cleaned) as T;
-  } catch (error) {
-    logger.error({ error, model }, 'Failed to parse AI response as JSON or call failed');
-    throw Error('AI returned malformed JSON or request failed');
   }
+
+  throw Error('Max retries exceeded for Gemini call');
 };
