@@ -102,16 +102,19 @@ app.post('/api/assumptions/:id/generate', async (req, res) => {
     
     const inferred = await extractAssumptions(roadmap.rawIdea, roadmap.sixW3hSummary);
     
-    const created = await Promise.all(
-      inferred.map(a => db.assumption.create({
-        data: {
-          roadmapId: roadmap.id,
-          statement: a.statement,
-          riskLevel: a.riskLevel,
-          isValidated: "pending"
-        }
+    await db.assumption.createMany({
+      data: inferred.map(a => ({
+        roadmapId: roadmap.id,
+        statement: a.statement,
+        riskLevel: a.riskLevel,
+        isValidated: "pending"
       }))
-    );
+    });
+    
+    const created = await db.assumption.findMany({
+      where: { roadmapId: roadmap.id },
+      orderBy: { createdAt: "desc" }
+    });
     
     await db.roadmap.update({ where: { id: roadmap.id }, data: { status: "assumptions" } });
     res.json({ assumptions: created });
@@ -156,18 +159,21 @@ app.post('/api/milestones/:id/generate', async (req, res) => {
       roadmap.sixW3hSummary
     );
     
-    const created = await Promise.all(
-      generated.map((m, i) => db.milestone.create({
-        data: {
-          roadmapId,
-          title: m.title,
-          description: m.description,
-          dayBucket: m.dayBucket,
-          orderIndex: i,
-          isAccepted: false
-        }
+    await db.milestone.createMany({
+      data: generated.map((m, i) => ({
+        roadmapId,
+        title: m.title,
+        description: m.description,
+        dayBucket: m.dayBucket,
+        orderIndex: i,
+        isAccepted: false
       }))
-    );
+    });
+    
+    const created = await db.milestone.findMany({
+      where: { roadmapId },
+      orderBy: [{ dayBucket: 'asc' }, { orderIndex: 'asc' }]
+    });
     
     await db.roadmap.update({ where: { id: roadmapId }, data: { status: "milestones" } });
     res.json({ milestones: created });
