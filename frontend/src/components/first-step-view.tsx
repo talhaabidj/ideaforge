@@ -62,14 +62,12 @@ export const FirstStepView = () => {
   return (
     <section className="relative mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
       <Reveal>
-        <div className="mb-4 flex items-center gap-3">
-          <span className="mono-eyebrow text-ember">04 / first step</span>
-          <span className="h-px w-12 bg-border" />
-          <span className="mono-eyebrow text-muted-foreground/50">stage 04 · paralysis-breaker</span>
+        <span className="eyebrow">04 · first step · paralysis-breaker</span>
+        <div className="mt-3 flex items-end justify-between gap-4">
+          <h2 className="font-display text-[clamp(1.75rem,4vw,2.75rem)] leading-tight text-foreground">
+            The <span className="text-gradient-emerald italic">smallest</span> thing you can do.
+          </h2>
         </div>
-        <h2 className="font-serif text-[clamp(2rem,5vw,3.5rem)] leading-[1.05] text-foreground">
-          The <span className="text-molten italic">smallest</span> thing you can do.
-        </h2>
         <p className="mt-3 max-w-xl text-muted-foreground">
           Execution paralysis ends here. The agent isolates the single smallest
           testable action you can take in the next 24–48 hours — no budget, no
@@ -93,7 +91,7 @@ export const FirstStepView = () => {
               </div>
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Select value={focusMilestoneId} onValueChange={setFocusMilestoneId}>
-                  <SelectTrigger className="border-border bg-background/50 focus-visible:ring-ember/40">
+                  <SelectTrigger className="border-border bg-background/50 focus-visible:ring-emerald/40">
                     <SelectValue placeholder="Whole roadmap" />
                   </SelectTrigger>
                   <SelectContent>
@@ -108,7 +106,7 @@ export const FirstStepView = () => {
                 <Button
                   onClick={run}
                   disabled={loading}
-                  className="shrink-0 bg-gradient-to-r from-ember to-coral text-ink hover:opacity-90"
+                  className="shrink-0 bg-foreground text-background hover:bg-foreground/90"
                 >
                   {loading ? (
                     <>
@@ -144,21 +142,21 @@ export const FirstStepView = () => {
           <div className="border-hairline relative rounded-xl">
             <div className="relative overflow-hidden rounded-xl surface-1 p-7 shadow-stack-lg sm:p-9 grain">
               {/* glow */}
-              <div className="pointer-events-none absolute -right-20 -top-20 h-60 w-60 ember-glow blur-3xl opacity-50" />
+              <div className="pointer-events-none absolute -right-20 -top-20 h-60 w-60 blur-3xl opacity-20" style={{ background: "var(--emerald)" }} />
 
               <div className="relative">
                 <div className="flex items-center justify-between">
-                  <span className="inline-flex items-center gap-2 rounded-full bg-ember/15 px-3 py-1 mono-eyebrow text-ember ring-1 ring-inset ring-ember/30">
+                  <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 mono-eyebrow ring-1 ring-inset" style={{ background: "rgba(31,111,74,0.1)", color: "var(--emerald)", borderColor: "rgba(31,111,74,0.3)" }}>
                     <TargetGlyph className="h-3 w-3" />
                     your first move
                   </span>
                   <span className="inline-flex items-center gap-1.5 rounded-full border border-border surface-2 px-3 py-1 mono-eyebrow text-muted-foreground">
-                    <Clock className="h-3 w-3 text-ember" />
+                    <Clock className="h-3 w-3" style={{ color: "var(--emerald)" }} />
                     ~{Math.round(firstStep.estimatedTimeHours)}h
                   </span>
                 </div>
 
-                <p className="mt-6 font-serif text-2xl leading-snug text-foreground sm:text-3xl">
+                <p className="mt-6 font-display text-2xl leading-snug text-foreground sm:text-3xl">
                   {firstStep.action}
                 </p>
 
@@ -172,7 +170,7 @@ export const FirstStepView = () => {
                 </div>
 
                 <div className="mt-6 flex flex-wrap items-center gap-2 mono-eyebrow text-muted-foreground">
-                  <CaliperGlyph className="h-3.5 w-3.5 text-ember" />
+                  <CaliperGlyph className="h-3.5 w-3.5" style={{ color: "var(--emerald)" }} />
                   no budget
                   <span className="text-border">·</span>
                   no team
@@ -186,9 +184,9 @@ export const FirstStepView = () => {
           {/* Proceed */}
           <div className="mt-8 flex flex-col items-center justify-between gap-4 rounded-xl border border-border surface-1 p-6 shadow-stack sm:flex-row">
             <div className="flex items-start gap-3">
-              <TargetGlyph className="mt-0.5 h-5 w-5 shrink-0 text-sage" />
+              <TargetGlyph className="mt-0.5 h-5 w-5 shrink-0" style={{ color: "var(--emerald)" }} />
               <div>
-                <p className="font-serif text-lg text-foreground">Your roadmap is complete.</p>
+                <p className="font-display text-lg text-foreground">Your roadmap is complete.</p>
                 <p className="mt-1 text-sm text-muted-foreground">
                   See the full picture — idea, assumptions, plan, and first move — in one view.
                 </p>
@@ -196,7 +194,7 @@ export const FirstStepView = () => {
             </div>
             <Button
               onClick={() => setStage("complete")}
-              className="shrink-0 bg-gradient-to-r from-ember to-coral text-ink hover:opacity-90"
+              className="shrink-0 bg-foreground text-background hover:bg-foreground/90"
             >
               View dashboard
               <ArrowRight className="h-4 w-4" />

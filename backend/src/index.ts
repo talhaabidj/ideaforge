@@ -121,6 +121,19 @@ app.post('/api/assumptions/:id/generate', async (req, res) => {
   }
 });
 
+app.patch('/api/assumptions/validate/:id', async (req, res) => {
+  try {
+    const assumption = await db.assumption.update({
+      where: { id: req.params.id },
+      data: { isValidated: req.body.state }
+    });
+    res.json({ assumption });
+  } catch (error) {
+    console.error("Assumption Validate Error:", error);
+    res.status(500).json({ error: "Failed to validate assumption" });
+  }
+});
+
 app.get('/api/milestones/:id', async (req, res) => {
   const milestones = await db.milestone.findMany({
     where: { roadmapId: req.params.id },
