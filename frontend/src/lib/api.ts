@@ -11,7 +11,7 @@ import type {
 // route, keeping the frontend fully connected to the (reimplemented) Express
 // contract. Errors are normalized into ApiError so the UI can branch cleanly.
 
-const BASE = "http://localhost:3001/api";
+const BASE = process.env.NODE_ENV === "production" ? "/_/backend/api" : "http://localhost:3001/api";
 
 const request = async <T>(
   path: string,
