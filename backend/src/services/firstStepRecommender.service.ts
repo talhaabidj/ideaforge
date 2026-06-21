@@ -26,7 +26,7 @@ export const recommendFirstStep = async (
     .join('\n');
 
   return callGeminiJson<FirstStepRecommendation>({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-2.5-flash',
     system: SYSTEM_PROMPT,
     prompt: `Idea: "${rawIdea}"\n\nPlanned milestones:\n${milestoneSummary || 'None generated yet.'}`,
     maxTokens: 400,

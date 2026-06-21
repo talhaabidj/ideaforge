@@ -35,10 +35,10 @@ export const inferSixWThreeH = async (
   }
 
   const inferred = await callGeminiJson<SixWThreeH>({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-2.5-flash',
     system: SYSTEM_PROMPT,
     prompt: `Raw idea: "${rawIdea}"\n\nFields needed: ${missingFields.join(', ')}`,
-    maxTokens: 600,
+    maxTokens: 2000,
   });
 
   // Spread order matters: AI fills gaps first, then user-provided values

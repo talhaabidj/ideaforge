@@ -32,7 +32,7 @@ export const generateMilestones = async (
     .join('\n\n');
 
   return callGeminiJson<GeneratedMilestone[]>({
-    model: 'gemini-1.5-pro',
+    model: 'gemini-2.5-flash',
     system: SYSTEM_PROMPT,
     prompt: `Idea: "${rawIdea}"${context ? `\n\n${context}` : ''}`,
     maxTokens: 1500,

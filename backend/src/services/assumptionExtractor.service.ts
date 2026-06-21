@@ -24,10 +24,10 @@ export const extractAssumptions = async (
   const context = sixW3hSummary ? `\n\n6W3H context: ${sixW3hSummary}` : '';
 
   const assumptions = await callGeminiJson<ExtractedAssumption[]>({
-    model: 'gemini-1.5-pro',
+    model: 'gemini-2.5-flash',
     system: SYSTEM_PROMPT,
     prompt: `Idea: "${rawIdea}"${context}`,
-    maxTokens: 800,
+    maxTokens: 2000,
   });
 
   return assumptions.slice(0, 5);

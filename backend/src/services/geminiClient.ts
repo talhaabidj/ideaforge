@@ -34,6 +34,7 @@ export const callGeminiJson = async <T>(options: CallJsonOptions): Promise<T> =>
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: {
         maxOutputTokens: maxTokens,
+        responseMimeType: "application/json",
       },
     });
 
@@ -44,6 +45,8 @@ export const callGeminiJson = async <T>(options: CallJsonOptions): Promise<T> =>
     }
 
     const cleaned = stripMarkdownFences(text);
+    console.log("GEMINI RAW:", text);
+    console.log("GEMINI CLEANED:", cleaned);
 
     return JSON.parse(cleaned) as T;
   } catch (error) {
