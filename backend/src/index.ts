@@ -69,9 +69,13 @@ app.post('/api/intake', async (req, res) => {
       }
     });
     res.json({ roadmap });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Intake Error:", error);
-    res.status(500).json({ error: "Failed to process intake" });
+    if (error?.status === 429) {
+      res.status(429).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Failed to process intake" });
+    }
   }
 });
 
@@ -118,9 +122,13 @@ app.post('/api/assumptions/:id/generate', async (req, res) => {
     
     await db.roadmap.update({ where: { id: roadmap.id }, data: { status: "assumptions" } });
     res.json({ assumptions: created });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Assumptions Error:", error);
-    res.status(500).json({ error: "Failed to generate assumptions" });
+    if (error?.status === 429) {
+      res.status(429).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Failed to generate assumptions" });
+    }
   }
 });
 
@@ -177,9 +185,13 @@ app.post('/api/milestones/:id/generate', async (req, res) => {
     
     await db.roadmap.update({ where: { id: roadmapId }, data: { status: "milestones" } });
     res.json({ milestones: created });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Milestones Error:", error);
-    res.status(500).json({ error: "Failed to generate milestones" });
+    if (error?.status === 429) {
+      res.status(429).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Failed to generate milestones" });
+    }
   }
 });
 
@@ -226,9 +238,13 @@ app.post('/api/first-step/:id/recommend', async (req, res) => {
     
     await db.roadmap.update({ where: { id: roadmapId }, data: { status: "complete" } });
     res.json({ firstStep: step });
-  } catch (error) {
+  } catch (error: any) {
     console.error("First Step Error:", error);
-    res.status(500).json({ error: "Failed to recommend first step" });
+    if (error?.status === 429) {
+      res.status(429).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Failed to recommend first step" });
+    }
   }
 });
 

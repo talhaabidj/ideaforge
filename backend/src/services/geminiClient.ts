@@ -21,10 +21,10 @@ const stripMarkdownFences = (text: string): string =>
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // Sends a single-turn message to Gemini and parses the reply as JSON.
-// Retries up to 3 times on rate-limit (429) errors with exponential backoff.
+// Retries up to 2 times on rate-limit (429) errors to avoid Vercel timeouts.
 export const callGeminiJson = async <T>(options: CallJsonOptions): Promise<T> => {
   const { model, system, prompt, maxTokens = 2048 } = options;
-  const maxRetries = 3;
+  const maxRetries = 2;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
@@ -52,12 +52,15 @@ export const callGeminiJson = async <T>(options: CallJsonOptions): Promise<T> =>
     } catch (error: unknown) {
       const err = error as { status?: number; message?: string };
 
-      // Retry on rate limit (429) with exponential backoff
-      if (err.status === 429 && attempt < maxRetries) {
-        const delay = Math.pow(2, attempt + 1) * 1000; // 2s, 4s, 8s
-        logger.warn({ model, attempt, delay }, `Rate limited, retrying in ${delay}ms...`);
-        await sleep(delay);
-        continue;
+      // Retry on rate limit (429)
+      if (err.status === 429) {
+        if (attempt < maxRetries) {
+          const delay = Math.pow(2, attempt) * 1000; // 1s, 2s
+          logger.warn({ model, attempt, delay }, `Rate limited, retrying in ${delay}ms...`);
+          await sleep(delay);
+          continue;
+        }
+        throw Object.assign(new Error('Gemini API rate limit exceeded. Please wait a minute and try again.'), { status: 429 });
       }
 
       const errMsg = err.message || String(error);
