@@ -138,7 +138,7 @@ Proudly engineered and designed for the **USAII® Global AI Hackathon 2026**.
 | **Talha Abid** | Frontend Developer | React / Next.js / Tailwind CSS (Frontend, QA, & Deployment) |
 | **Eman Mirza** | Backend Developer | Node.js / Express Architecture (Backend, QA & Deployment) |
 | **Mahad** | Database Engineer | Data Modeling & Prisma ORM |
-| **Mahrukh** | Product Strategy | Brainstorming & Problem Solving |
+| **Mahrukh Saddiquee** | Product Strategy | Brainstorming & Problem Solving |
 ---
 
 ## 📜 License
