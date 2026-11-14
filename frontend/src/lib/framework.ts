@@ -1,6 +1,6 @@
 // The 6W3H framework config — drives the intake chatbot's conversational
 // flow. Each field has a question the agent asks, a hint, and an icon name
-// (mapped to lucide icons in the UI). Mirrors the teammate's SIX_W_3H_FIELDS.
+// (mapped to icons in the UI).
 
 import type { SixWThreeH } from "./types";
 

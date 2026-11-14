@@ -1,5 +1,4 @@
-// Shared domain types — mirror the teammate's Drizzle schema shapes so the
-// frontend is fully typed against the API contract.
+// Shared domain types, matching the backend's Prisma models and API responses.
 
 export type RoadmapStatus = "draft" | "assumptions" | "milestones" | "complete";
 
@@ -61,7 +60,7 @@ export type SixWThreeH = {
   howMany?: string;
 };
 
-// API error shape — matches the teammate's Express errorHandler.
+// API error shape returned by the backend.
 export type ApiError = {
   error: string;
   message?: string;

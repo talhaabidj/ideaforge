@@ -6,10 +6,10 @@ import type {
   SixWThreeH,
   ApiError,
 } from "./types";
+import { useIdeaforge } from "./store";
 
 // Typed client for the IdeaForge API. Every method maps 1:1 to a backend
-// route, keeping the frontend fully connected to the (reimplemented) Express
-// contract. Errors are normalized into ApiError so the UI can branch cleanly.
+// route. Errors are normalized into ApiError so the UI can branch cleanly.
 
 const BASE = process.env.NODE_ENV === "production" ? "/_/backend/api" : "http://localhost:3001/api";
 
@@ -17,10 +17,13 @@ const request = async <T>(
   path: string,
   init?: RequestInit,
 ): Promise<T> => {
+  // The backend keeps one anonymous user per browser, identified by this id.
+  const userId = useIdeaforge.getState().userId;
   const res = await fetch(`${BASE}${path}`, {
     ...init,
     headers: {
       "Content-Type": "application/json",
+      ...(userId ? { "X-User-Id": userId } : {}),
       ...(init?.headers ?? {}),
     },
   });

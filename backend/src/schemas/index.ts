@@ -1,27 +1,27 @@
 import { z } from "zod";
 
-// Mirrors the teammate's Zod schemas exactly (src/schemas/*). Keeping the
-// contract identical means the frontend + API route layer are a faithful
-// reimplementation of the Express backend.
+// Request shapes for every route that takes input. The server rejects
+// anything else with a 400 before it reaches the database or Gemini.
 
-const sixWThreeHSchema = z
+const answerSchema = z.string().trim().min(1).max(500);
+
+export const sixWThreeHSchema = z
   .object({
-    who: z.string().trim().min(1).max(500),
-    what: z.string().trim().min(1).max(500),
-    where: z.string().trim().min(1).max(500),
-    when: z.string().trim().min(1).max(500),
-    why: z.string().trim().min(1).max(500),
-    which: z.string().trim().min(1).max(500),
-    how: z.string().trim().min(1).max(500),
-    howMuch: z.string().trim().min(1).max(500),
-    howMany: z.string().trim().min(1).max(500),
+    who: answerSchema,
+    what: answerSchema,
+    where: answerSchema,
+    when: answerSchema,
+    why: answerSchema,
+    which: answerSchema,
+    how: answerSchema,
+    howMuch: answerSchema,
+    howMany: answerSchema,
   })
   .partial();
 
 export type SixWThreeH = z.infer<typeof sixWThreeHSchema>;
 
-export const intakeSubmitSchema = z.object({
-  userId: z.string().uuid({ message: "userId must be a valid UUID" }),
+export const intakeBodySchema = z.object({
   rawIdea: z
     .string()
     .trim()
@@ -30,30 +30,24 @@ export const intakeSubmitSchema = z.object({
   sixWThreeH: sixWThreeHSchema.optional(),
 });
 
-export type IntakeSubmitInput = z.infer<typeof intakeSubmitSchema>;
+export type IntakeBody = z.infer<typeof intakeBodySchema>;
 
 export const assumptionGenerateBodySchema = z.object({
   focusHint: z.string().trim().max(500).optional(),
 });
 
-export type AssumptionGenerateInput = z.infer<typeof assumptionGenerateBodySchema>;
-
 export const milestoneGenerateBodySchema = z.object({
   constraints: z.string().trim().max(500).optional(),
 });
 
-export type MilestoneGenerateInput = z.infer<typeof milestoneGenerateBodySchema>;
-
-export const firstStepGenerateBodySchema = z.object({
+export const firstStepBodySchema = z.object({
   focusMilestoneId: z.string().uuid().optional(),
 });
 
-export type FirstStepGenerateInput = z.infer<typeof firstStepGenerateBodySchema>;
-
-export const roadmapIdParamSchema = z.object({
-  roadmapId: z.string().uuid({ message: "roadmapId must be a valid UUID" }),
+export const assumptionStateBodySchema = z.object({
+  state: z.enum(["validated", "invalidated"]),
 });
 
-export const milestoneIdParamSchema = z.object({
-  milestoneId: z.string().uuid({ message: "milestoneId must be a valid UUID" }),
+export const idParamSchema = z.object({
+  id: z.string().uuid({ message: "id must be a valid UUID" }),
 });

@@ -1,24 +1,7 @@
 "use client";
 
-/* ============================================================
-   Responsible AI Section — IdeaForge Landing Page
-
-   CRITICAL: This section addresses 10% of the hackathon judging
-   criteria. It communicates our Responsible AI practices clearly
-   and visually.
-
-   Four pillars:
-   1. Content Moderation — regex deny-list blocks harmful input
-   2. Human-in-the-Loop — milestones require explicit acceptance
-   3. Transparent Reasoning — AI shows its work at every stage
-   4. Privacy by Design — local SQLite, no PII, session-based
-
-   Design:
-   - Emerald accent with subtle shield/lock iconography
-   - Framer Motion scroll-triggered reveal animations
-   - Staggered card entrance for premium feel
-   - Accessible: proper headings, ARIA labels, semantic HTML
-   ============================================================ */
+/* Responsible AI section of the landing page: content moderation,
+   human-in-the-loop milestones, visible reasoning and privacy. */
 
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
@@ -35,8 +18,8 @@ const PILLARS = [
     icon: ShieldCheck,
     title: "Content Moderation",
     description:
-      "A regex-based deny-list screens every user input before it reaches the LLM. Harmful, offensive, or adversarial prompts are blocked at the edge — the AI never sees them.",
-    detail: "Deny-list · edge filtering · pre-LLM guard",
+      "A deny-list screens every input sent to the AI agents before it reaches the model. Matching requests are rejected, so the model never sees them.",
+    detail: "Deny-list · checked before the model",
     badge: "GUARDED",
   },
   {
@@ -59,8 +42,8 @@ const PILLARS = [
     icon: LockKey,
     title: "Privacy by Design",
     description:
-      "All data lives in a local SQLite database. No PII is collected, stored, or transmitted. Sessions are ephemeral and user-controlled. Your ideas stay yours.",
-    detail: "Local SQLite · zero PII · session-scoped",
+      "No sign-up and no names or emails are asked for. Each browser gets an anonymous id, and only that browser can see its own ideas.",
+    detail: "Anonymous id · no sign-up · no analytics",
     badge: "PRIVATE",
   },
 ];
