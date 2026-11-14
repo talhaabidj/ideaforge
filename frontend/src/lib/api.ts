@@ -11,7 +11,7 @@ import { useIdeaforge } from "./store";
 // Typed client for the IdeaForge API. Every method maps 1:1 to a backend
 // route. Errors are normalized into ApiError so the UI can branch cleanly.
 
-const BASE = process.env.NODE_ENV === "production" ? "/_/backend/api" : "http://localhost:3001/api";
+const BASE = process.env.NODE_ENV === "production" ? "/api" : "http://localhost:3001/api";
 
 const request = async <T>(
   path: string,

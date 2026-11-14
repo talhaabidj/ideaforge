@@ -10,7 +10,7 @@ Browser
   ▼
 Frontend: Next.js (App Router, React 19), Tailwind CSS, shadcn/ui, Framer Motion, Zustand
   │   one page; Zustand moves the user through the four stages
-  │   calls /_/backend/api in production, http://localhost:3001/api in development
+  │   calls /api in production, http://localhost:3001/api in development
   ▼
 Backend: Express.js REST API (backend/src/index.ts)
   │   four agent services in backend/src/services/
@@ -19,8 +19,9 @@ Backend: Express.js REST API (backend/src/index.ts)
 Database: PostgreSQL through Prisma (backend/prisma/schema.prisma)
 ```
 
-Both parts deploy to Vercel as two services from one repository (`vercel.json`): the frontend at `/`
-and the backend at `/_/backend`.
+Both parts deploy to Vercel as two services from one repository (`vercel.json`): requests to
+`/api/*` go to the backend and everything else to the frontend. Vercel compiles
+`backend/src/index.ts` itself; the backend build step only runs Prisma.
 
 ## The four agents
 

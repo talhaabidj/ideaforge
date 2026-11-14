@@ -1,7 +1,7 @@
 {
   "name": "ideaforge-backend",
   "version": "1.0.0",
-  "type": "module",
+  "type": "commonjs",
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "npx prisma generate && npx prisma db push --accept-data-loss && tsc",
