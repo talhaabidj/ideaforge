@@ -35,7 +35,7 @@ IdeaForge is structured as a commercial-grade full-stack application with comple
 
 - **Frontend (`/frontend`):** Next.js App Router (React 19) with Tailwind CSS 4, shadcn/ui, Framer Motion, and Zustand
 - **Backend (`/backend`):** Dedicated Express.js server exposing REST API endpoints
-- **Database:** SQLite with Prisma ORM (stored in `/backend/prisma`)
+- **Database:** PostgreSQL with Prisma ORM (schema in `/backend/prisma`)
 - **AI Layer:** 4 specialized agents utilizing `@google/generative-ai` (Gemini API)
 
 > 📐 See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full system diagram, data flow, and design decisions.
@@ -48,11 +48,11 @@ We take AI responsibility seriously. Our design addresses five risk categories w
 
 | Risk | Mitigation |
 |------|-----------|
-| **Over-reliance** | HITL milestone acceptance — AI proposes, human disposes |
-| **Algorithmic bias** | Transparent risk tags + diverse prompt engineering |
-| **Content safety** | Regex moderation layer blocks harmful input pre-AI |
-| **Hallucination** | Structured JSON contracts + bounded agent scope |
-| **Data privacy** | Local SQLite, no PII, session-based identity |
+| **Over-reliance** | Milestones stay drafts until the user accepts each one |
+| **Biased assumptions** | Visible risk tags the user can validate or reject |
+| **Harmful input** | Zod validation, rate limits and a regex deny-list before any AI call |
+| **Hallucination** | JSON-only agent replies and small, bounded agent tasks |
+| **Data privacy** | No sign-up; an anonymous id per browser that sees only its own ideas |
 
 > 📋 See [RESPONSIBLE_AI.md](./RESPONSIBLE_AI.md) for the full risk analysis and mitigation documentation.
 
@@ -93,13 +93,12 @@ ideaforge/
 ├── backend/                           # Express.js REST API
 │   ├── src/
 │   │   ├── index.ts                   # Express server entry point & routes
-│   │   ├── config/                    # Database and environment config
+│   │   ├── config/                    # Database, environment and logger config
+│   │   ├── middleware/                # Security, session, rate limit, moderation
 │   │   ├── schemas/                   # Zod validation schemas
-│   │   ├── services/                  # The 4 AI Agents implementation
-│   │   └── geminiClient.ts            # Gemini API integration
-│   ├── prisma/                        # SQLite Database & ORM Schema
-│   │   ├── schema.prisma              # Data models (Roadmap, Assumption, etc)
-│   │   └── dev.db                     # Local SQLite database
+│   │   └── services/                  # The 4 AI agents and the Gemini client
+│   ├── prisma/
+│   │   └── schema.prisma              # PostgreSQL data models (Roadmap, Assumption, etc)
 │   └── package.json                   # Backend dependencies
 │
 ├── package.json                       # Root orchestrator (concurrently)
@@ -115,7 +114,7 @@ ideaforge/
 | Method | Path | Purpose |
 |--------|------|---------|
 | GET | `/api/health` | Server + database health check |
-| GET | `/api/session` | Session management (anonymous UUID) |
+| GET | `/api/session` | Create or resume the browser's anonymous user |
 | GET | `/api/roadmaps` | List user's roadmaps |
 | POST | `/api/intake` | Create roadmap from raw idea + 6W3H AI Agent |
 | GET | `/api/intake/:roadmapId` | Fetch a specific roadmap |
@@ -126,6 +125,11 @@ ideaforge/
 | PATCH | `/api/milestones/:milestoneId/accept` | HITL accept a milestone |
 | POST | `/api/first-step/:roadmapId/recommend` | Run first-step recommendation AI Agent |
 | GET | `/api/first-step/:roadmapId` | Fetch first-step recommendation |
+| PATCH | `/api/assumptions/validate/:assumptionId` | Mark an assumption validated or invalidated |
+| DELETE | `/api/roadmaps/:roadmapId` | Delete a roadmap |
+
+Every route except `/api/health` and `/api/session` needs the `X-User-Id` header that the frontend
+sends automatically.
 
 ---
 

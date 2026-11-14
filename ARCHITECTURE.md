@@ -1,187 +1,90 @@
-# IdeaForge — System Architecture
+# IdeaForge: System Architecture
 
-> A complete reference for how IdeaForge is built, from raw idea to first step.
+How the deployed app is built, from raw idea to first step.
 
----
-
-## High-Level Architecture
+## Overview
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        FRONTEND (React)                         │
-│  Next.js 16 App Router · Tailwind CSS 4 · shadcn/ui · Framer   │
-│                                                                 │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐          │
-│  │  Intake   │→│Assumptions│→│Milestones │→│First Step│          │
-│  │ Chatbot   │ │   View   │ │  View     │ │  View    │          │
-│  │ (6W3H)    │ │ (Risks)  │ │ (30/60/90)│ │ (Action) │          │
-│  └─────┬─────┘ └─────┬────┘ └─────┬─────┘ └─────┬────┘          │
-│        │              │            │              │              │
-│  Zustand Store ←──────┴────────────┴──────────────┘              │
-│  (stage, roadmapId, rawIdea)                                    │
-└────────┬──────────────┬────────────┬──────────────┬──────────────┘
-         │ POST /intake │ POST /gen  │ PATCH /accept│ POST /recommend
-         ▼              ▼            ▼              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                     BACKEND (Express.js)                        │
-│            Dedicated REST API Server (port 3001)                │
-│                                                                 │
-│  ┌─────────────┐  ┌──────────────┐  ┌──────────────┐          │
-│  │  Validation  │→│  Moderation   │→│  Rate Limit   │          │
-│  │  (Zod)       │  │ (Regex deny) │  │ (In-memory)  │          │
-│  └──────┬───────┘  └──────────────┘  └──────────────┘          │
-│         │                                                       │
-│  ┌──────▼───────────────────────────────────────────┐          │
-│  │              AI SERVICE LAYER                     │          │
-│  │  ┌────────────┐ ┌───────────────┐ ┌────────────┐│          │
-│  │  │inferSixW3H │ │extractAssumps │ │genMilestone││          │
-│  │  └──────┬─────┘ └───────┬───────┘ └──────┬─────┘│          │
-│  │  ┌──────▼───────────────▼────────────────▼──────┐│          │
-│  │  │        z-ai-web-dev-sdk (LLM Gateway)        ││          │
-│  │  └──────────────────────────────────────────────┘│          │
-│  └──────────────────────┬───────────────────────────┘          │
-│                         │                                       │
-│  ┌──────────────────────▼───────────────────────────┐          │
-│  │               DATABASE (Prisma + SQLite)          │          │
-│  │  User │ Roadmap │ Assumption │ Milestone │ FirstStep        │
-│  └───────────────────────────────────────────────────┘          │
-└─────────────────────────────────────────────────────────────────┘
+Browser
+  │
+  ▼
+Frontend: Next.js (App Router, React 19), Tailwind CSS, shadcn/ui, Framer Motion, Zustand
+  │   one page; Zustand moves the user through the four stages
+  │   calls /_/backend/api in production, http://localhost:3001/api in development
+  ▼
+Backend: Express.js REST API (backend/src/index.ts)
+  │   four agent services in backend/src/services/
+  │   each calls Gemini 2.5 Flash through @google/generative-ai (geminiClient.ts)
+  ▼
+Database: PostgreSQL through Prisma (backend/prisma/schema.prisma)
 ```
 
----
+Both parts deploy to Vercel as two services from one repository (`vercel.json`): the frontend at `/`
+and the backend at `/_/backend`.
 
-## Frontend vs Backend Boundaries
+## The four agents
 
-IdeaForge uses **Next.js App Router**, which co-locates frontend and backend:
+| Stage | Service | Input | Output |
+|---|---|---|---|
+| 1. Intake (6W3H) | `aiAgent.service.ts` (`inferSixWThreeH`) | raw idea and any 6W3H answers the user gave | the nine 6W3H fields; the model fills gaps and keeps the user's answers |
+| 2. Assumptions | `assumptionExtractor.service.ts` | idea and 6W3H summary | 3 to 5 risky assumptions, each tagged low, medium or high |
+| 3. Milestones | `milestoneGenerator.service.ts` | idea, summary and assumptions | a 30/60/90-day plan; each milestone starts as a draft |
+| 4. First step | `firstStepRecommender.service.ts` | idea and milestones | one action for the next 24 hours, with a rationale and time estimate |
 
-| Layer | Location | Technology |
-|-------|----------|------------|
-| **Frontend** | `src/app/page.tsx`, `src/components/` | React 19, Framer Motion, Zustand |
-| **Backend** | `src/app/api/` (12 route handlers) | Prisma, Zod, z-ai-web-dev-sdk |
-| **Shared** | `src/lib/` | Types, validation schemas, utilities |
+Each service asks for JSON and parses the reply. When Gemini returns a rate-limit error (429), the
+backend passes it to the frontend so the user sees what happened.
 
-The API routes function identically to an Express server — they receive HTTP requests, validate input, call AI services, persist to the database, and return JSON responses.
-
----
-
-## The 4-Agent Pipeline
-
-Each stage has a dedicated AI agent with a specialized system prompt:
-
-### Stage 1: Intake (6W3H Chatbot)
-- **Agent:** `inferSixWThreeH`
-- **Input:** Raw idea string (e.g., "I want to build a pet-sitting app")
-- **Processing:** Structures the idea across 9 fields — Who, What, Where, When, Why, Which, How, How much, How many
-- **Output:** Structured JSON with inferred values for each field
-- **Key Design:** AI infers gaps but NEVER overwrites user-provided values
-
-### Stage 2: Assumption Extraction
-- **Agent:** `extractAssumptions`
-- **Input:** Raw idea + 6W3H summary
-- **Processing:** Surfaces the 3-5 riskiest unvalidated beliefs (demand, willingness to pay, distribution)
-- **Output:** Array of `{statement, riskLevel: "low"|"medium"|"high"}`
-- **Key Design:** Risk levels enable prioritized validation
-
-### Stage 3: Milestone Generation
-- **Agent:** `generateMilestones`
-- **Input:** Raw idea + summary + assumptions + optional constraints
-- **Processing:** Synthesizes a chronological 30/60/90-day plan (~15 milestones)
-- **Output:** Array of `{title, description, dayBucket: 30|60|90, orderIndex}`
-- **Key Design:** **HITL (Human-in-the-Loop)** — every milestone stays `draft` until the user explicitly accepts it via PATCH
-
-### Stage 4: First Step Recommendation
-- **Agent:** `recommendFirstStep`
-- **Input:** Raw idea + summary + assumptions + milestones + optional focus milestone
-- **Processing:** Isolates the single smallest testable action
-- **Output:** `{action, rationale, estimatedTimeHours}`
-- **Key Design:** Constraints: 24 hours, no budget, no team — produces real signal about the riskiest assumption
-
----
-
-## Data Flow
+## Data flow
 
 ```
-User types raw idea
-    │
-    ▼
-POST /api/intake
-    │ → Zod validates input
-    │ → Moderation checks for harmful content
-    │ → Rate limiter checks request frequency
-    │ → inferSixWThreeH(rawIdea) → AI structures via 6W3H
-    │ → Prisma creates Roadmap record
-    │ → Returns 201 { roadmap }
-    ▼
-POST /api/assumptions/:id/generate
-    │ → Loads roadmap from DB
-    │ → extractAssumptions(rawIdea, summary) → AI extracts risks
-    │ → Prisma creates 3-5 Assumption records
-    │ → Returns 200 { assumptions }
-    ▼
-POST /api/milestones/:id/generate
-    │ → Loads roadmap + assumptions from DB
-    │ → generateMilestones(rawIdea, summary, assumptions) → AI plans
-    │ → Prisma creates ~15 Milestone records (isAccepted: false)
-    │ → Returns 200 { milestones }
-    ▼
-PATCH /api/milestones/:milestoneId/accept   ← HITL checkpoint
-    │ → Updates isAccepted = true, sets acceptedAt
-    │ → Returns 200 { milestone }
-    ▼
-POST /api/first-step/:id/recommend
-    │ → Loads roadmap + assumptions + milestones from DB
-    │ → recommendFirstStep(...) → AI isolates action
-    │ → Prisma creates FirstStep record
-    │ → Returns 200 { firstStep }
+POST /api/intake                        → stage 1, creates a Roadmap
+POST /api/assumptions/:id/generate      → stage 2, stores Assumptions
+POST /api/milestones/:id/generate       → stage 3, stores Milestones (isAccepted = false)
+PATCH /api/milestones/:id/accept        → the user accepts a milestone (human in the loop)
+POST /api/first-step/:id/recommend      → stage 4, stores the FirstStep
 ```
 
----
+Other routes: `GET /api/health`, `GET /api/session`, `GET /api/roadmaps`, `GET` routes to read each
+stage, `PATCH /api/assumptions/validate/:id` and `DELETE /api/roadmaps/:id`.
 
-## Database Schema
+## Database
 
-Five models with cascading deletes:
+Five Prisma models: `User`, `Roadmap`, `Assumption`, `Milestone` and `FirstStep`, with cascading
+deletes from `Roadmap`. The backend build runs `prisma db push` against `DATABASE_URL`.
 
-| Model | Key Fields | Purpose |
-|-------|------------|---------|
-| **User** | id, email (unique), name | Session-based user (no auth provider in sandbox) |
-| **Roadmap** | id, userId, title, rawIdea, sixW3hSummary, status | Central entity linking all pipeline stages |
-| **Assumption** | id, roadmapId, statement, riskLevel, isValidated | Risk-tagged beliefs extracted by AI |
-| **Milestone** | id, roadmapId, title, dayBucket, isAccepted | 30/60/90-day plan items with HITL flag |
-| **FirstStep** | id, roadmapId, action, rationale, estimatedTimeHours | Smallest testable action |
+## State
 
----
+- Server: PostgreSQL holds all pipeline data.
+- Client: Zustand with `persist` keeps the current roadmap and stage; each stage reloads its data
+  from the API.
 
-## State Management
+## Identity
 
-- **Server State:** Prisma/SQLite (source of truth for all pipeline data)
-- **Client State:** Zustand with `persist` middleware
-  - Persisted: `userId`, `roadmapId`, `stage`, `rawIdea`
-  - Non-persisted: `assumptions`, `milestones`, `firstStep` (re-fetched from API on reload)
-- **Hydration:** Each pipeline stage component fetches its data from the API on mount
+There is no sign-in. `GET /api/session` creates an anonymous user and returns its id; the frontend
+keeps the id in the browser and sends it as the `X-User-Id` header. Every other route checks it
+(`middleware/session.ts`) and only reads or changes that user's own roadmaps.
 
----
+## Request checks
 
-## Security & Safety
+Applied in `index.ts`, in this order:
 
-| Layer | Implementation | Purpose |
-|-------|---------------|---------|
-| **Input Validation** | Zod schemas on every endpoint | Reject malformed requests |
-| **Content Moderation** | Regex deny-list (src/lib/moderation.ts) | Block harmful content before AI |
-| **Rate Limiting** | In-memory sliding window (src/lib/rateLimit.ts) | Prevent abuse |
-| **HITL Safety** | Milestone accept requires explicit PATCH | Human approval before advancing |
-| **AI Disclaimer** | Persistent HitlBanner in footer | Transparency about AI-generated content |
-| **Error Handling** | Consistent error shapes via src/lib/http.ts | Predictable API responses |
+1. Security headers (helmet) and CORS (`middleware/security.ts`).
+2. A general rate limit on all `/api` routes (`middleware/rateLimiter.ts`).
+3. Zod validation of route ids and request bodies (`schemas/index.ts`, `utils/validateRequest.ts`).
+4. On the four routes that call Gemini: the session check, a tighter rate limit, then the regex
+   deny-list (`middleware/moderation.ts`).
 
----
+Rate limits use Upstash Redis when it is configured. Without it they fall back to counts kept in
+memory per server instance, which is a soft cap on serverless hosting.
 
-## Key Design Decisions
+The human-in-the-loop step: milestones stay drafts until the user accepts each one, and a banner
+in the interface says the AI proposes a plan but does not validate the idea.
 
-1. **Next.js API Routes vs Express:** The teammate built Express + Neon Postgres. We reimplemented as Next.js routes with Prisma/SQLite for sandbox deployability while maintaining the identical API contract.
+## Design choices
 
-2. **z-ai-web-dev-sdk vs Anthropic:** The teammate planned Anthropic Claude but left agents as 501 TODOs. We wired in z-ai-web-dev-sdk which provides equivalent LLM capabilities.
-
-3. **Light Mode Only:** Dark mode was abandoned as an "AI tell" — professional SaaS products use light themes. The design system enforces a cool off-white canvas with restrained emerald accents.
-
-4. **6W3H Framework:** Instead of a free-form prompt, we use the structured 6W3H journalistic framework (Who, What, Where, When, Why, Which, How, How Much, How Many) to ensure comprehensive idea capture.
-
-5. **Single-Page Pipeline:** The entire pipeline runs on a single page with Zustand-managed stage transitions, rather than traditional routing, for a cohesive product feel.
+1. **6W3H intake.** A fixed set of nine questions (who, what, where, when, why, which, how, how
+   much, how many) captures the idea more completely than a free-form prompt.
+2. **One-page pipeline.** The four stages share one page and move forward through the Zustand
+   store instead of separate routes.
+3. **Separate frontend and backend.** The Express backend keeps the agents and database access out
+   of the browser bundle, and both deploy from one repository.
